@@ -61,6 +61,53 @@ button{
     width: 5rem;
 }
 
+/* ========= BUTTON STYLINGS ========= */
+button.zero, button.equal{
+    width: 11rem; 
+}
+
+button.operator{
+    background-color: #4F6D7A;
+}
+button.action{
+    background-color: #A94442;
+}
+button.equal{
+    background-color: #009688;
+}
+
+
+button {
+    transition: all 0.15s ease;
+}
+button:hover{
+    background-color: #3f545c;
+}
+button:active{
+    outline: 1px solid whitesmoke;
+    background-color: #2a383e; 
+}
+
+button.operator:hover {
+    background-color: #5f7f8e;
+}
+button.operator:active {
+    background-color: #3f5964;
+}
+
+button.action:hover {
+    background-color: #bf5653;
+}
+button.action:active {
+    background-color: #8e3634;
+}
+
+button.equal:hover {
+    background-color: #1aa79a;
+}
+button.equal:active {
+    background-color: #00796b;
+}
 
 
 
