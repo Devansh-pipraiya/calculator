@@ -1,0 +1,49 @@
+* {
+    outline: 1px solid black;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body{
+    display: flex;
+    flex-direction: column;
+    font-family: 'JetBrains Mono', "Roboto", sans-serif;
+    height: 100vh;
+    background-color: #C8EEE4;
+}
+#main{
+    flex : 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#calculator-body{
+    background-color: #263238;
+    height: 50vh;
+    width: 60vw;
+
+}
+
+
+/* ========= FOOTER ========= */
+
+footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    margin-top: auto;
+    padding:10px;
+    /* font-family: "Roboto"; */
+}
+.github-logo {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease-in-out;
+    vertical-align: middle;
+}
+.github-logo:hover {
+  transform: rotate(360deg) scale(1.2);
+}
