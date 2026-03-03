@@ -50,17 +50,20 @@ body{
     scrollbar-gutter: stable; 
 }
 
-
 h1{
     letter-spacing: -0.1em ;
 }
 
-#display > h3 , h2{
+h2{
+    opacity: 0.5;
+    font-weight: 400;
+}
+
+#display > h3 {
     opacity: 0.5;
     font-weight: 400;
     letter-spacing: -0.1em ;
 }
-
 
 #divider{
     width: 100%;
@@ -82,7 +85,7 @@ h1{
     border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #0ead90f5;
+    background: #0ead90ee;
 }
 
 
