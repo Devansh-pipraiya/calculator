@@ -32,7 +32,9 @@ function handleClick(e) {
 		btn.classList.contains("equal") &&
 		!Number.isNaN(num1) &&
 		num1 !== undefined &&
-		operator !== undefined;
+		operator !== undefined &&
+		!Number.isNaN(num2) &&
+		num2 !== undefined;
 
 	if (!btn.classList.contains("button")) return;
 
@@ -50,10 +52,17 @@ function handleClick(e) {
 
 			if (num1 && operator && num2) {
 				console.log("ok nows the eval time");
+
+				expression.push(operator)
+				expression.push(num2)
+
 				result = operate(num1, operator, num2);
 				num1 = result;
 				num2 = undefined;
 				operator = btn.dataset.value;
+
+				expression.push(operator)
+
 				h2.textContent = result;
 				updateDisplay();
 			} else if (operator == btnValue) {
@@ -61,15 +70,18 @@ function handleClick(e) {
 			} else {
 				operator = btn.dataset.value;
 				console.log(operator);
+
+				expression.push(num1);
+
 				updateDisplay();
 			}
-
-			// h1.appendChild(document.createTextNode(btn.dataset.value));
 
 			break;
 
 		case "equal":
+
 			if (readyToEvaluate) {
+				let finalArr = cleanArr(expression, availableOperator);
 				let result = operate(num1, operator, num2);
 
 				console.log("operate function called with", +num1, operator, +num2);
@@ -79,7 +91,14 @@ function handleClick(e) {
 				h2.replaceChildren(document.createTextNode(result));
 				h1.textContent = result;
 
-				if (this.result === result) { return }
+				if (this.result === result) { return };
+
+				if (finalArr.length > 1) {
+					h3 = document.createElement("h3");
+					h3.textContent = `${finalArr.join(" ")} ${operator}  ${num2} = ${result}`;
+					display.insertBefore(h3, divider.nextSibling);
+					this.result = result;
+				}
 				else {
 					h3 = document.createElement("h3");
 					h3.textContent = `${num1} ${operator} ${num2} = ${result}`;
@@ -105,7 +124,6 @@ function appendnum1(value) {
 	} else {
 		num1 = num1 + value;
 	}
-	// expression.push(value);
 	updateDisplay();
 }
 
@@ -115,7 +133,6 @@ function appendNum2(value) {
 	} else {
 		num2 = num2 + value;
 	}
-	// expression.push(value);
 	updateDisplay();
 }
 
@@ -135,5 +152,40 @@ function updateDisplay() {
 	}
 
 	h1.textContent = displayText.trim();
-	// h1.textContent = expression.join("");
 };
+
+
+function cleanArr(arr, availableOperator) {
+	let result = [];
+
+	// 1️⃣ Remove elements with number datatype
+	arr = arr.filter(item => typeof item !== "number");
+
+	// 2️⃣ Remove continuous duplicate numbers (only possible at start)
+	for (let i = 0; i < arr.length; i++) {
+		if (i === 0 || arr[i] !== arr[i - 1]) {
+			result.push(arr[i]);
+		}
+	}
+
+	// 3️⃣ Keep only last operator if operators repeat continuously
+	let final = [];
+	for (let i = 0; i < result.length; i++) {
+		const current = result[i];
+		const prev = final[final.length - 1];
+
+		if (availableOperator.includes(current) &&
+			availableOperator.includes(prev)) {
+			final[final.length - 1] = current; // replace with latest operator
+		} else {
+			final.push(current);
+		}
+	}
+
+	// 4️⃣ Remove last element if it is operator
+	if (availableOperator.includes(final[final.length - 1])) {
+		final.pop();
+	}
+
+	return final;
+}
