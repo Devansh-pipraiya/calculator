@@ -1,60 +1,114 @@
-const buttons = document.querySelector("#button-container")
-const availableOperator = ["+", "-", "/", "*"];
-const input = [];
-let num1 , num2 , operator;
+const add = (a, b) => a + b;
+const subtract = (a, b) => a - b;
+const multiply = (a, b) => a * b;
+const divide = (a, b) => a / b;
 
-
-
-const add = (num1,num2) => num1 + num2 ;
-const subtract = (num1,num2) => num1 - num2 ;
-const multiply = (num1,num2) => num1 * num2 ;
-const divide = (num1,num2) => num1 / num2 ;
-
-
-function operate(num1 , operator, num2){
-    switch(operator){
-        case "+": return add(num1, num2);
-        case "-": return subtract(num1, num2);
-        case "*": return multiply(num1, num2);
-        case "/": return divide(num1, num2);
-    }
+function operate(runningTotal, operator, currNum) {
+	switch (operator) {
+		case "+":
+			return add(+runningTotal, +currNum);
+		case "-":
+			return subtract(runningTotal, currNum);
+		case "*":
+			return multiply(runningTotal, currNum);
+		case "/":
+			return divide(runningTotal, currNum);
+	}
 }
 
+const buttons = document.querySelector("#button-container");
+const display = document.querySelector("#display");
+const inputDisplay = document.querySelector("#display h1");
 
+const availableOperator = ["+", "-", "/", "*"];
+
+let displayText = "";
+let runningTotal = "";
+let currNum = "";
+let currOperator = "";
+let enteringSecondNumber = false;
 
 buttons.addEventListener("click", handleClick);
-function handleClick(e){
 
-    const btn = e.target;
-    const btnType = e.target.dataset.type;
-    const readyToEvaluate = btn.classList.contains("equal") 
-                            && !Number.isNaN(num1) 
-                            && num1 !== undefined 
-                            && operator !== undefined;
+// =========== helping functions =========== //
 
-    if(!btn.classList.contains("button")) return;
+function appendNumber(value) {
+	if (enteringSecondNumber === false && currOperator) {
+	} else if (enteringSecondNumber === true && runningTotal == "") {
+		runningTotal = currNum;
+		currNum = "";
+	}
 
-    switch(btnType){
+	currNum += value;
+	console.log(currNum);
+}
 
-        case "number":
-            input.push(btn.dataset.value);
-            num1 = +input[input.length - 2];
-            num2 = +input[input.length - 1];
-            console.log(input);
-            console.log(num1, num2);
-            break;
+function updateDisplay(value) {
+	displayText += value;
+	inputDisplay.textContent = displayText;
+}
 
-        case "operator":
-            operator = btn.dataset.value;
-            console.log(operator);
-            break;
+function updateOperator(operator) {
+	if (runningTotal == "") {
+		enteringSecondNumber = true;
+	} else if (runningTotal !== "" && currOperator !== "") {
+		enteringSecondNumber = true;
+	} else {
+		enteringSecondNumber = false;
+	}
 
-        case "equal":
-            if (readyToEvaluate){
-                console.log("operate function called with", num1, operator, num2);
-                console.log("answer => ", operate(num1, operator, num2));
-            }
-            break;
+	currOperator = operator;
+	console.log(currOperator);
+}
 
-    }
+function handleClick(e) {
+	const btn = e.target;
+	const btnType = e.target.dataset.type;
+	const btnValue = e.target.dataset.value;
+	const readyToCalculate =
+		currOperator !== "" && runningTotal !== "" && currNum !== "";
+
+	switch (btnType) {
+		case "number":
+			appendNumber(btnValue);
+			updateDisplay(btnValue);
+			break;
+
+		case "operator":
+			if (enteringSecondNumber == true && readyToCalculate) {
+				let result = operate(runningTotal, currOperator, currNum);
+				runningTotal = result;
+				currNum = "";
+				console.log(result, runningTotal, currOperator, currNum);
+			}
+			updateOperator(btnValue);
+			updateDisplay(btnValue);
+			break;
+
+		case "equal":
+			if (readyToCalculate) {
+				let result = operate(runningTotal, currOperator, currNum);
+				updateDisplay(btnValue);
+				updateDisplay(result);
+				allClear();
+			}
+			break;
+
+		case "clear":
+			break;
+
+		case "ac":
+			allClear();
+			updateDisplay(0);
+			allClear();
+			break;
+	}
+}
+
+function allClear() {
+	displayText = "";
+	runningTotal = "";
+	currNum = "";
+	currOperator = "";
+	enteringSecondNumber = false;
 }
