@@ -8,11 +8,11 @@ function operate(runningTotal, operator, currNum) {
 		case "+":
 			return add(+runningTotal, +currNum);
 		case "-":
-			return subtract(runningTotal, currNum);
+			return subtract(+runningTotal, +currNum);
 		case "*":
-			return multiply(runningTotal, currNum);
+			return multiply(+runningTotal, +currNum);
 		case "/":
-			return divide(runningTotal, currNum);
+			return divide(+runningTotal, +currNum);
 	}
 }
 
@@ -21,6 +21,7 @@ const display = document.querySelector("#display");
 const inputDisplay = document.querySelector("#display h1");
 
 const availableOperator = ["+", "-", "/", "*"];
+const isFirstOperation = () => runningTotal == "" && currNum !== "";
 
 let displayText = "";
 let runningTotal = "";
@@ -33,13 +34,8 @@ buttons.addEventListener("click", handleClick);
 // =========== helping functions =========== //
 
 function appendNumber(value) {
-	if (enteringSecondNumber === false && currOperator) {
-	} else if (enteringSecondNumber === true && runningTotal == "") {
-		runningTotal = currNum;
-		currNum = "";
-	}
-
 	currNum += value;
+	enteringSecondNumber = false;
 	console.log(currNum);
 }
 
@@ -49,14 +45,6 @@ function updateDisplay(value) {
 }
 
 function updateOperator(operator) {
-	if (runningTotal == "") {
-		enteringSecondNumber = true;
-	} else if (runningTotal !== "" && currOperator !== "") {
-		enteringSecondNumber = true;
-	} else {
-		enteringSecondNumber = false;
-	}
-
 	currOperator = operator;
 	console.log(currOperator);
 }
@@ -65,6 +53,7 @@ function handleClick(e) {
 	const btn = e.target;
 	const btnType = e.target.dataset.type;
 	const btnValue = e.target.dataset.value;
+
 	const readyToCalculate =
 		currOperator !== "" && runningTotal !== "" && currNum !== "";
 
@@ -75,12 +64,9 @@ function handleClick(e) {
 			break;
 
 		case "operator":
-			if (enteringSecondNumber == true && readyToCalculate) {
-				let result = operate(runningTotal, currOperator, currNum);
-				runningTotal = result;
-				currNum = "";
-				console.log(result, runningTotal, currOperator, currNum);
-			}
+			!enteringSecondNumber
+				? calculateRunningTotal()
+				: removeDisplayLastChar();
 			updateOperator(btnValue);
 			updateDisplay(btnValue);
 			break;
@@ -95,6 +81,8 @@ function handleClick(e) {
 			break;
 
 		case "clear":
+			removeDisplayLastChar();
+			removeCurrNumLastChar();
 			break;
 
 		case "ac":
@@ -111,4 +99,22 @@ function allClear() {
 	currNum = "";
 	currOperator = "";
 	enteringSecondNumber = false;
+}
+
+function removeDisplayLastChar() {
+	displayText = displayText.slice(0, -1);
+	inputDisplay.textContent = displayText;
+}
+
+function removeCurrNumLastChar() {
+	currNum = currNum.slice(0, -1);
+}
+
+function calculateRunningTotal() {
+	runningTotal = isFirstOperation()
+		? currNum
+		: operate(runningTotal, currOperator, currNum);
+
+	currNum = "";
+	enteringSecondNumber = true;
 }
