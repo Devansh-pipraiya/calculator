@@ -19,9 +19,10 @@ function operate(runningTotal, operator, currNum) {
 const buttons = document.querySelector("#button-container");
 const display = document.querySelector("#display");
 const inputDisplay = document.querySelector("#display h1");
+const resultDisplay = document.querySelector("#display h2");
 
 const availableOperator = ["+", "-", "/", "*"];
-const isFirstOperation = () => runningTotal == "" && currNum !== "";
+const isFirstOperation = () => runningTotal === "" && currNum !== "";
 
 let displayText = "";
 let runningTotal = "";
@@ -51,6 +52,10 @@ function updateOperator(operator) {
 	console.log(currOperator);
 }
 
+function updateDisplayResult(result) {
+	resultDisplay.textContent = result;
+}
+
 function handleClick(e) {
 	const btn = e.target;
 	const btnType = e.target.dataset.type;
@@ -75,15 +80,20 @@ function handleClick(e) {
 			updateOperator(btnValue);
 			updateDisplay(btnValue);
 
-			if (hasOperatorDeleted) hasOperatorDeleted = false;
+			if (hasOperatorDeleted) {
+				hasOperatorDeleted = false;
+				updateDisplayResult(runningTotal);
+			}
 			break;
 
 		case "equal":
 			if (readyToCalculate) {
 				let result = operate(runningTotal, currOperator, currNum);
-				updateDisplay(btnValue);
+
+				displayText = "";
 				updateDisplay(result);
-				allClear();
+				updateDisplayResult(result);
+				resetOnEqual();
 			}
 			break;
 
@@ -91,10 +101,9 @@ function handleClick(e) {
 			if (isLastCharAnOperator) {
 				removeDisplayLastChar();
 				hasOperatorDeleted = true;
-				console.log("op removed enter op first");
+				updateDisplayResult("Enter an Operator");
 				return;
 			}
-
 			if (currNum === "") return;
 
 			removeDisplayLastChar();
@@ -102,8 +111,6 @@ function handleClick(e) {
 			break;
 
 		case "ac":
-			allClear();
-			updateDisplay(0);
 			allClear();
 			break;
 	}
@@ -115,6 +122,19 @@ function allClear() {
 	currNum = "";
 	currOperator = "";
 	enteringSecondNumber = false;
+	hasOperatorDeleted = false;
+
+	inputDisplay.textContent = "Enter a Number";
+	resultDisplay.textContent = 0;
+}
+
+function resetOnEqual() {
+	displayText = "";
+	runningTotal = "";
+	currNum = "";
+	currOperator = "";
+	enteringSecondNumber = false;
+	hasOperatorDeleted = false;
 }
 
 function removeDisplayLastChar() {
@@ -131,6 +151,7 @@ function calculateRunningTotal() {
 		? currNum
 		: operate(runningTotal, currOperator, currNum);
 
+	updateDisplayResult(runningTotal);
 	currNum = "";
 	enteringSecondNumber = true;
 }

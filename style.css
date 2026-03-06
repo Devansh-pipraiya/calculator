@@ -51,16 +51,9 @@ body{
 }
 
 
-
-h2{
+#display > h3, h2 {
     opacity: 0.5;
     font-weight: 400;
-}
-
-#display > h3 {
-    opacity: 0.5;
-    font-weight: 400;
-    letter-spacing: -0.1em ;
 }
 
 #divider{
