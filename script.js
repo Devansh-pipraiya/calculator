@@ -29,6 +29,8 @@ let currNum = "";
 let currOperator = "";
 let enteringSecondNumber = false;
 
+let hasOperatorDeleted = false;
+
 buttons.addEventListener("click", handleClick);
 
 // =========== helping functions =========== //
@@ -53,22 +55,27 @@ function handleClick(e) {
 	const btn = e.target;
 	const btnType = e.target.dataset.type;
 	const btnValue = e.target.dataset.value;
-
-	const readyToCalculate =
-		currOperator !== "" && runningTotal !== "" && currNum !== "";
+	const isLastCharAnOperator = availableOperator.includes(displayText.at(-1));
+	const readyToCalculate = runningTotal !== "" && currNum !== "";
 
 	switch (btnType) {
 		case "number":
+			if (hasOperatorDeleted) return;
+
 			appendNumber(btnValue);
 			updateDisplay(btnValue);
 			break;
 
 		case "operator":
-			!enteringSecondNumber
-				? calculateRunningTotal()
-				: removeDisplayLastChar();
+			if (runningTotal === "" && currNum === "") return;
+
+			if (!enteringSecondNumber) calculateRunningTotal();
+			else if (isLastCharAnOperator) removeDisplayLastChar();
+
 			updateOperator(btnValue);
 			updateDisplay(btnValue);
+
+			if (hasOperatorDeleted) hasOperatorDeleted = false;
 			break;
 
 		case "equal":
@@ -81,6 +88,15 @@ function handleClick(e) {
 			break;
 
 		case "clear":
+			if (isLastCharAnOperator) {
+				removeDisplayLastChar();
+				hasOperatorDeleted = true;
+				console.log("op removed enter op first");
+				return;
+			}
+
+			if (currNum === "") return;
+
 			removeDisplayLastChar();
 			removeCurrNumLastChar();
 			break;
