@@ -1,5 +1,5 @@
+/* ===============    BASE & RESET    ============= */
 * {
-    /* outline: 1px solid white; */
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -29,6 +29,8 @@ body{
     padding: 1.5rem;
 }
 
+/* ===============   CALCULATOR DISPLAY     ============= */
+
 .title{
     opacity: 0.6;
 }
@@ -50,8 +52,8 @@ body{
     scrollbar-gutter: stable; 
 }
 
-
-#display > h3, h2 {
+#display > h3,
+#display > h2 {
     opacity: 0.5;
     font-weight: 400;
 }
@@ -62,6 +64,7 @@ body{
     margin: 10px 0;
 }
 
+/* =============   SCROLL-BAR   =========== */
 
 ::-webkit-scrollbar{
     width: 8px;
@@ -80,10 +83,7 @@ body{
 }
 
 
-
-
-
-
+/* ===============    BUTTONS & THE CONTAINER    ============= */
 
 #button-container{
     display: flex;
@@ -91,6 +91,7 @@ body{
     justify-content: center;
     gap: 1rem;
 }
+
 button{
     font-family: inherit;
     color: white;
@@ -151,7 +152,6 @@ button.equal:hover {
 button.equal:active {
     background-color: #00796b;
 }
-
 
 
 /* ========= FOOTER ========= */

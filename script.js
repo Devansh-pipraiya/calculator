@@ -1,7 +1,86 @@
+// Basic functions -> used by operate()
 const add = (a, b) => a + b;
 const subtract = (a, b) => a - b;
 const multiply = (a, b) => a * b;
 const divide = (a, b) => a / b;
+
+// Selectors
+const buttons = document.querySelector("#button-container");
+const display = document.querySelector("#display");
+const divider = document.querySelector("#divider");
+const inputDisplay = document.querySelector("#display h1");
+const resultDisplay = document.querySelector("#display h2");
+
+// ================================================== //
+// =========== Initial Variables settings =========== //
+// ================================================== //
+
+const availableOperator = ["+", "-", "/", "*"];
+
+let displayText = "";
+let runningTotal = "";
+let currNum = "";
+let currOperator = "";
+let enteringSecondNumber = false;
+
+let hasOperatorDeleted = false;
+let isDecimalActive = false;
+
+// ================================================== //
+// ============     Helper Functions     ============ //
+// ================================================== //
+
+const isFirstOperation = () => runningTotal === "" && currNum !== ""; // returns true/false
+
+const removeCurrNumLastChar = () => (currNum = currNum.slice(0, -1));
+
+const removeDisplayLastChar = () => {
+	displayText = displayText.slice(0, -1);
+	inputDisplay.textContent = displayText;
+};
+
+// cut large decimal numbers
+const round = (string) => {
+	if (string == "Error" || string == "You Can't Divide by 0") return string;
+
+	// converted to Number again to remove if no decimal value present (1.3000 to 1.3)
+	return Number(Number(string).toFixed(4)); // ex -> 1.3333333333 to 1.3333
+};
+
+//
+// ========================   To update on calculator display    ======================== //
+
+function updateDisplay(value) {
+	displayText += value;
+	inputDisplay.textContent = displayText;
+}
+
+const updateDisplayResult = (result) => (resultDisplay.textContent = result);
+
+function updateHistory(result) {
+	let historyEntry = document.createElement("h3");
+	historyEntry.textContent = `${displayText}=${result}`;
+	divider.insertAdjacentElement("afterend", historyEntry);
+}
+
+//
+// =============     To update Variables and Display it     ========== //
+//
+
+function appendNumber(value) {
+	currNum += value;
+	enteringSecondNumber = false;
+	updateDisplay(value);
+}
+
+function updateOperator(operator) {
+	currOperator = operator;
+	updateDisplay(operator);
+}
+
+//
+// ========     either returns the calculated result or error msg     ======== //
+// ==============     handles Nan & divide by 0 case     ===================== //
 
 function operate(runningTotal, operator, currNum) {
 	if (isNaN(runningTotal)) return "You Can't Divide by 0";
@@ -14,66 +93,32 @@ function operate(runningTotal, operator, currNum) {
 		case "*":
 			return multiply(+runningTotal, +currNum);
 		case "/":
-			if (currNum === "0" || currNum == "0.") return "Error";
+			if (+currNum === "0") return "Error";
 			return divide(+runningTotal, +currNum);
 	}
 }
 
-const buttons = document.querySelector("#button-container");
-const display = document.querySelector("#display");
-const divider = document.querySelector("#divider");
-const inputDisplay = document.querySelector("#display h1");
-const resultDisplay = document.querySelector("#display h2");
+// ================    ensure correct data flow logic and calculation    ================ //
 
-const availableOperator = ["+", "-", "/", "*"];
-const isFirstOperation = () => runningTotal === "" && currNum !== "";
+function calculateRunningTotal() {
+	runningTotal = isFirstOperation()
+		? currNum
+		: operate(runningTotal, currOperator, currNum);
 
-let displayText = "";
-let runningTotal = "";
-let currNum = "";
-let currOperator = "";
-let enteringSecondNumber = false;
+	runningTotal = round(runningTotal);
 
-let hasOperatorDeleted = false;
-let isDecimalActive = false;
-
-buttons.addEventListener("click", handleClick);
-
-// =========== helping functions =========== //
-
-function appendNumber(value) {
-	currNum += value;
-	enteringSecondNumber = false;
-	console.log(currNum);
+	updateDisplayResult(runningTotal);
+	currNum = "";
+	enteringSecondNumber = true; // after this now you can enter second/next number & it will be stored in currNum variable
+	isDecimalActive = false;
 }
-
-function updateDisplay(value) {
-	displayText += value;
-	inputDisplay.textContent = displayText;
-}
-
-function updateOperator(operator) {
-	currOperator = operator;
-	console.log(currOperator);
-}
-
-function updateDisplayResult(result) {
-	resultDisplay.textContent = result;
-}
-
-function updateHistory(result) {
-	let historyEntry = document.createElement("h3");
-	historyEntry.textContent = `${displayText}=${result}`;
-	divider.insertAdjacentElement("afterend", historyEntry);
-}
-
-const round = (string) => {
-	if (string == "Error" || string == "You Can't Divide by 0") return string;
-	return Number(Number(string).toFixed(4)); // used Number again to remove if no decimal is there
-};
 
 //
-// Main Logic Function
+// ====================================================================================== //
+// =========================     Main Logic Function    ================================= //
+//======================================================================================= //
+
+buttons.addEventListener("click", handleClick);
 
 function handleClick(e) {
 	const btn = e.target;
@@ -86,23 +131,22 @@ function handleClick(e) {
 
 	switch (btnType) {
 		case "number":
-			if (hasOperatorDeleted) return;
+			if (hasOperatorDeleted) return; //                      -> edge case when entering second num without operator
 
 			appendNumber(btnValue);
-			updateDisplay(btnValue);
 			break;
 
 		case "operator":
-			if (runningTotal === "" && currNum === "") return;
+			if (runningTotal === "" && currNum === "") return; //    -> edge case = if first thing is user enter operator
 
-			if (!enteringSecondNumber) calculateRunningTotal();
-			else if (isLastCharAnOperator) removeDisplayLastChar();
+			if (!enteringSecondNumber)
+				calculateRunningTotal(); //                         //-> make space for entering second num
+			else if (isLastCharAnOperator) removeDisplayLastChar(); //-> To update new operator
 
 			updateOperator(btnValue);
-			updateDisplay(btnValue);
 
 			if (hasOperatorDeleted) {
-				hasOperatorDeleted = false;
+				hasOperatorDeleted = false; //                        -> edgde case reset when using backspace
 				updateDisplayResult(runningTotal);
 			}
 			break;
@@ -110,7 +154,6 @@ function handleClick(e) {
 		case "equal":
 			if (readyToCalculate) {
 				let result = operate(runningTotal, currOperator, currNum);
-
 				result = round(result);
 
 				updateHistory(result);
@@ -123,13 +166,14 @@ function handleClick(e) {
 
 		case "clear":
 			if (isLastCharAnOperator) {
+				//                      -> edge case of deleting operator
 				removeDisplayLastChar();
 				hasOperatorDeleted = true;
 				updateDisplayResult("Enter an Operator");
 				return;
 			}
-			if (currNum === "") return;
-			if (isLastCharAnDecimal) isDecimalActive = false;
+			if (currNum === "") return; //                       -> edge case if whole currNum string is deleted
+			if (isLastCharAnDecimal) isDecimalActive = false; // -> edge case of reseting decimal state
 
 			removeDisplayLastChar();
 			removeCurrNumLastChar();
@@ -140,28 +184,17 @@ function handleClick(e) {
 			break;
 
 		case "dot":
-			if (isDecimalActive == true) return;
-			if (btnValue === ".") isDecimalActive = true;
+			if (isDecimalActive == true) return; //                -> egde case of decimal
+			isDecimalActive = true;
 
 			appendNumber(btnValue);
-			updateDisplay(btnValue);
 			break;
 	}
 }
 
-function allClear() {
-	displayText = "";
-	runningTotal = "";
-	currNum = "";
-	currOperator = "";
-	enteringSecondNumber = false;
-	hasOperatorDeleted = false;
-
-	isDecimalActive = false;
-
-	inputDisplay.textContent = "Enter a Number";
-	resultDisplay.textContent = 0;
-}
+//
+//
+// ================ Reset To Initial states =============== //
 
 function resetOnEqual() {
 	displayText = "";
@@ -169,29 +202,15 @@ function resetOnEqual() {
 	currNum = "";
 	currOperator = "";
 	enteringSecondNumber = false;
+
 	hasOperatorDeleted = false;
-
 	isDecimalActive = false;
 }
 
-function removeDisplayLastChar() {
-	displayText = displayText.slice(0, -1);
-	inputDisplay.textContent = displayText;
-}
+function allClear() {
+	resetOnEqual();
 
-function removeCurrNumLastChar() {
-	currNum = currNum.slice(0, -1);
-}
-
-function calculateRunningTotal() {
-	runningTotal = isFirstOperation()
-		? currNum
-		: operate(runningTotal, currOperator, currNum);
-
-	runningTotal = round(runningTotal);
-
-	updateDisplayResult(runningTotal);
-	currNum = "";
-	enteringSecondNumber = true;
-	isDecimalActive = false;
+	inputDisplay.textContent = "Enter a Number";
+	resultDisplay.textContent = 0;
+	display.querySelectorAll("h3").forEach((h3) => h3.remove());
 }
