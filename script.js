@@ -4,6 +4,8 @@ const multiply = (a, b) => a * b;
 const divide = (a, b) => a / b;
 
 function operate(runningTotal, operator, currNum) {
+	if (isNaN(runningTotal)) return "You Can't Divide by 0";
+
 	switch (operator) {
 		case "+":
 			return add(+runningTotal, +currNum);
@@ -12,6 +14,7 @@ function operate(runningTotal, operator, currNum) {
 		case "*":
 			return multiply(+runningTotal, +currNum);
 		case "/":
+			if (currNum === "0" || currNum == "0.") return "Error";
 			return divide(+runningTotal, +currNum);
 	}
 }
@@ -32,6 +35,7 @@ let currOperator = "";
 let enteringSecondNumber = false;
 
 let hasOperatorDeleted = false;
+let isDecimalActive = false;
 
 buttons.addEventListener("click", handleClick);
 
@@ -63,6 +67,11 @@ function updateHistory(result) {
 	divider.insertAdjacentElement("afterend", historyEntry);
 }
 
+const round = (string) => {
+	if (string == "Error" || string == "You Can't Divide by 0") return string;
+	return Number(Number(string).toFixed(4)); // used Number again to remove if no decimal is there
+};
+
 //
 // Main Logic Function
 
@@ -72,6 +81,7 @@ function handleClick(e) {
 	const btnValue = e.target.dataset.value;
 
 	const isLastCharAnOperator = availableOperator.includes(displayText.at(-1));
+	const isLastCharAnDecimal = ["."].includes(displayText.at(-1));
 	const readyToCalculate = runningTotal !== "" && currNum !== "";
 
 	switch (btnType) {
@@ -101,6 +111,8 @@ function handleClick(e) {
 			if (readyToCalculate) {
 				let result = operate(runningTotal, currOperator, currNum);
 
+				result = round(result);
+
 				updateHistory(result);
 				displayText = "";
 				updateDisplay(result);
@@ -117,6 +129,7 @@ function handleClick(e) {
 				return;
 			}
 			if (currNum === "") return;
+			if (isLastCharAnDecimal) isDecimalActive = false;
 
 			removeDisplayLastChar();
 			removeCurrNumLastChar();
@@ -124,6 +137,14 @@ function handleClick(e) {
 
 		case "ac":
 			allClear();
+			break;
+
+		case "dot":
+			if (isDecimalActive == true) return;
+			if (btnValue === ".") isDecimalActive = true;
+
+			appendNumber(btnValue);
+			updateDisplay(btnValue);
 			break;
 	}
 }
@@ -136,6 +157,8 @@ function allClear() {
 	enteringSecondNumber = false;
 	hasOperatorDeleted = false;
 
+	isDecimalActive = false;
+
 	inputDisplay.textContent = "Enter a Number";
 	resultDisplay.textContent = 0;
 }
@@ -147,6 +170,8 @@ function resetOnEqual() {
 	currOperator = "";
 	enteringSecondNumber = false;
 	hasOperatorDeleted = false;
+
+	isDecimalActive = false;
 }
 
 function removeDisplayLastChar() {
@@ -163,7 +188,10 @@ function calculateRunningTotal() {
 		? currNum
 		: operate(runningTotal, currOperator, currNum);
 
+	runningTotal = round(runningTotal);
+
 	updateDisplayResult(runningTotal);
 	currNum = "";
 	enteringSecondNumber = true;
+	isDecimalActive = false;
 }
