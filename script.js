@@ -126,7 +126,7 @@ function handleClick(e) {
 	const btnValue = e.target.dataset.value;
 
 	const isLastCharAnOperator = availableOperator.includes(displayText.at(-1));
-	const isLastCharAnDecimal = ["."].includes(displayText.at(-1));
+	const isLastCharAnDecimal = displayText.at(-1) === ".";
 	const readyToCalculate = runningTotal !== "" && currNum !== "";
 
 	switch (btnType) {
@@ -166,8 +166,7 @@ function handleClick(e) {
 
 		case "clear":
 			if (isLastCharAnOperator) {
-				//                      -> edge case of deleting operator
-				removeDisplayLastChar();
+				removeDisplayLastChar(); //                      -> edge case of deleting operator
 				hasOperatorDeleted = true;
 				updateDisplayResult("Enter an Operator");
 				return;
@@ -213,4 +212,38 @@ function allClear() {
 	inputDisplay.textContent = "Enter a Number";
 	resultDisplay.textContent = 0;
 	display.querySelectorAll("h3").forEach((h3) => h3.remove());
+}
+
+//============================================================================================= //
+// =====================     KEYBOARD EVENT HANDLING      ===================================== //
+
+const availableNumbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+document.addEventListener("keydown", handleKey);
+function handleKey(e) {
+	let btn;
+
+	if (availableNumbers.includes(e.key)) {
+		btn = document.querySelector(
+			`button[data-type="number"][data-value="${e.key}"]`,
+		);
+	} else if (availableOperator.includes(e.key)) {
+		btn = document.querySelector(
+			`button[data-type="operator"][data-value="${e.key}"]`,
+		);
+	} else if (e.key === "Enter") {
+		btn = document.querySelector(`button[data-type="equal"]`);
+	} else if (e.key === "Shift") {
+		btn = document.querySelector(`button[data-type="clear"]`);
+	} else if (e.key === "Delete") {
+		btn = document.querySelector(`button[data-type="ac"]`);
+	} else if (e.key === ".") {
+		btn = document.querySelector(`button[data-type="dot"]`);
+	}
+
+	if (btn) {
+		btn.click();
+		btn.classList.add("key-active");
+		setTimeout(() => btn.classList.remove("key-active"), 100);
+	}
 }

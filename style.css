@@ -97,7 +97,7 @@ button{
     color: white;
     background-color: #34454c;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 1.4rem;
 
     flex: 0 0 auto;
@@ -122,7 +122,7 @@ button.equal{
 
 
 button {
-    transition: all 0.15s ease;
+    transition: all 0.10s ease;
 }
 button:hover{
     background-color: #3f545c;
@@ -151,6 +151,11 @@ button.equal:hover {
 }
 button.equal:active {
     background-color: #00796b;
+}
+/* for pressing with keyboard event */
+button.key-active {
+    outline: 1px solid whitesmoke;
+    background-color: #2a383e;
 }
 
 
