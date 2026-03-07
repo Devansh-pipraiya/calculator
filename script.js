@@ -18,6 +18,7 @@ function operate(runningTotal, operator, currNum) {
 
 const buttons = document.querySelector("#button-container");
 const display = document.querySelector("#display");
+const divider = document.querySelector("#divider");
 const inputDisplay = document.querySelector("#display h1");
 const resultDisplay = document.querySelector("#display h2");
 
@@ -56,10 +57,20 @@ function updateDisplayResult(result) {
 	resultDisplay.textContent = result;
 }
 
+function updateHistory(result) {
+	let historyEntry = document.createElement("h3");
+	historyEntry.textContent = `${displayText}=${result}`;
+	divider.insertAdjacentElement("afterend", historyEntry);
+}
+
+//
+// Main Logic Function
+
 function handleClick(e) {
 	const btn = e.target;
 	const btnType = e.target.dataset.type;
 	const btnValue = e.target.dataset.value;
+
 	const isLastCharAnOperator = availableOperator.includes(displayText.at(-1));
 	const readyToCalculate = runningTotal !== "" && currNum !== "";
 
@@ -90,9 +101,10 @@ function handleClick(e) {
 			if (readyToCalculate) {
 				let result = operate(runningTotal, currOperator, currNum);
 
+				updateHistory(result);
 				displayText = "";
 				updateDisplay(result);
-				updateDisplayResult(result);
+				updateDisplayResult("=");
 				resetOnEqual();
 			}
 			break;
