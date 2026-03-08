@@ -1,191 +1,249 @@
+// Basic functions -> used by operate()
+const add = (a, b) => a + b;
+const subtract = (a, b) => a - b;
+const multiply = (a, b) => a * b;
+const divide = (a, b) => a / b;
+
+// Selectors
 const buttons = document.querySelector("#button-container");
-const availableOperator = ["+", "-", "/", "x"];
+const display = document.querySelector("#display");
+const divider = document.querySelector("#divider");
+const inputDisplay = document.querySelector("#display h1");
+const resultDisplay = document.querySelector("#display h2");
 
-let num1, num2, operator;
-let result;
-let expression = [];
+// ================================================== //
+// =========== Initial Variables settings =========== //
+// ================================================== //
 
-const add = (num1, num2) => num1 + num2;
-const subtract = (num1, num2) => num1 - num2;
-const multiply = (num1, num2) => num1 * num2;
-const divide = (num1, num2) => num1 / num2;
+const availableOperator = ["+", "-", "/", "*"];
 
-function operate(num1, operator, num2) {
+let displayText = "";
+let runningTotal = "";
+let currNum = "";
+let currOperator = "";
+let enteringSecondNumber = false;
+
+let hasOperatorDeleted = false;
+let isDecimalActive = false;
+
+// ================================================== //
+// ============     Helper Functions     ============ //
+// ================================================== //
+
+const isFirstOperation = () => runningTotal === "" && currNum !== ""; // returns true/false
+
+const removeCurrNumLastChar = () => (currNum = currNum.slice(0, -1));
+
+const removeDisplayLastChar = () => {
+	displayText = displayText.slice(0, -1);
+	inputDisplay.textContent = displayText;
+};
+
+// cut large decimal numbers
+const round = (string) => {
+	if (string == "Error" || string == "You Can't Divide by 0") return string;
+
+	// converted to Number again to remove if no decimal value present (1.3000 to 1.3)
+	return Number(Number(string).toFixed(4)); // ex -> 1.3333333333 to 1.3333
+};
+
+//
+// ========================   To update on calculator display    ======================== //
+
+function updateDisplay(value) {
+	displayText += value;
+	inputDisplay.textContent = displayText;
+}
+
+const updateDisplayResult = (result) => (resultDisplay.textContent = result);
+
+function updateHistory(result) {
+	let historyEntry = document.createElement("h3");
+	historyEntry.textContent = `${displayText}=${result}`;
+	divider.insertAdjacentElement("afterend", historyEntry);
+}
+
+//
+// =============     To update Variables and Display it     ========== //
+//
+
+function appendNumber(value) {
+	currNum += value;
+	enteringSecondNumber = false;
+	updateDisplay(value);
+}
+
+function updateOperator(operator) {
+	currOperator = operator;
+	updateDisplay(operator);
+}
+
+//
+// ========     either returns the calculated result or error msg     ======== //
+// ==============     handles Nan & divide by 0 case     ===================== //
+
+function operate(runningTotal, operator, currNum) {
+	if (isNaN(runningTotal)) return "You Can't Divide by 0";
+
 	switch (operator) {
 		case "+":
-			return add(+num1, +num2);
+			return add(+runningTotal, +currNum);
 		case "-":
-			return subtract(+num1, +num2);
-		case "x":
-			return multiply(+num1, +num2);
+			return subtract(+runningTotal, +currNum);
+		case "*":
+			return multiply(+runningTotal, +currNum);
 		case "/":
-			return divide(+num1, +num2);
+			if (+currNum === "0") return "Error";
+			return divide(+runningTotal, +currNum);
 	}
 }
 
+// ================    ensure correct data flow logic and calculation    ================ //
+
+function calculateRunningTotal() {
+	runningTotal = isFirstOperation()
+		? currNum
+		: operate(runningTotal, currOperator, currNum);
+
+	runningTotal = round(runningTotal);
+
+	updateDisplayResult(runningTotal);
+	currNum = "";
+	enteringSecondNumber = true; // after this now you can enter second/next number & it will be stored in currNum variable
+	isDecimalActive = false;
+}
+
+//
+// ====================================================================================== //
+// =========================     Main Logic Function    ================================= //
+//======================================================================================= //
+
 buttons.addEventListener("click", handleClick);
+
 function handleClick(e) {
 	const btn = e.target;
 	const btnType = e.target.dataset.type;
 	const btnValue = e.target.dataset.value;
-	const readyToEvaluate =
-		btn.classList.contains("equal") &&
-		!Number.isNaN(num1) &&
-		num1 !== undefined &&
-		operator !== undefined &&
-		!Number.isNaN(num2) &&
-		num2 !== undefined;
 
-	if (!btn.classList.contains("button")) return;
+	const isLastCharAnOperator = availableOperator.includes(displayText.at(-1));
+	const isLastCharAnDecimal = displayText.at(-1) === ".";
+	const readyToCalculate = runningTotal !== "" && currNum !== "";
 
 	switch (btnType) {
 		case "number":
-			if (num1 && operator) {
-				appendNum2(btnValue);
-			} else {
-				appendnum1(btnValue);
-			}
+			if (hasOperatorDeleted) return; //                      -> edge case when entering second num without operator
+
+			appendNumber(btnValue);
 			break;
 
 		case "operator":
-			if (!num1) return;
+			if (runningTotal === "" && currNum === "") return; //    -> edge case = if first thing is user enter operator
 
-			if (num1 && operator && num2) {
-				console.log("ok nows the eval time");
+			if (!enteringSecondNumber)
+				calculateRunningTotal(); //                         //-> make space for entering second num
+			else if (isLastCharAnOperator) removeDisplayLastChar(); //-> To update new operator
 
-				expression.push(operator)
-				expression.push(num2)
+			updateOperator(btnValue);
 
-				result = operate(num1, operator, num2);
-				num1 = result;
-				num2 = undefined;
-				operator = btn.dataset.value;
-
-				expression.push(operator)
-
-				h2.textContent = result;
-				updateDisplay();
-			} else if (operator == btnValue) {
-				return;
-			} else {
-				operator = btn.dataset.value;
-				console.log(operator);
-
-				expression.push(num1);
-
-				updateDisplay();
+			if (hasOperatorDeleted) {
+				hasOperatorDeleted = false; //                        -> edgde case reset when using backspace
+				updateDisplayResult(runningTotal);
 			}
-
 			break;
 
 		case "equal":
+			if (readyToCalculate) {
+				let result = operate(runningTotal, currOperator, currNum);
+				result = round(result);
 
-			if (readyToEvaluate) {
-				let finalArr = cleanArr(expression, availableOperator);
-				let result = operate(num1, operator, num2);
-
-				console.log("operate function called with", +num1, operator, +num2);
-				console.log(result);
-
-				defaulth2.remove();
-				h2.replaceChildren(document.createTextNode(result));
-				h1.textContent = result;
-
-				if (this.result === result) { return };
-
-				if (finalArr.length > 1) {
-					h3 = document.createElement("h3");
-					h3.textContent = `${finalArr.join(" ")} ${operator}  ${num2} = ${result}`;
-					display.insertBefore(h3, divider.nextSibling);
-					this.result = result;
-				}
-				else {
-					h3 = document.createElement("h3");
-					h3.textContent = `${num1} ${operator} ${num2} = ${result}`;
-					display.insertBefore(h3, divider.nextSibling);
-					this.result = result;
-				}
+				updateHistory(result);
+				displayText = "";
+				updateDisplay(result);
+				updateDisplayResult("=");
+				resetOnEqual();
 			}
+			break;
+
+		case "clear":
+			if (isLastCharAnOperator) {
+				removeDisplayLastChar(); //                      -> edge case of deleting operator
+				hasOperatorDeleted = true;
+				updateDisplayResult("Enter an Operator");
+				return;
+			}
+			if (currNum === "") return; //                       -> edge case if whole currNum string is deleted
+			if (isLastCharAnDecimal) isDecimalActive = false; // -> edge case of reseting decimal state
+
+			removeDisplayLastChar();
+			removeCurrNumLastChar();
+			break;
+
+		case "ac":
+			allClear();
+			break;
+
+		case "dot":
+			if (isDecimalActive == true) return; //                -> egde case of decimal
+			isDecimalActive = true;
+
+			appendNumber(btnValue);
 			break;
 	}
 }
 
-const h1 = document.querySelector("#display h1");
-const defaulth1 = document.querySelector("#display h1 span");
-const h2 = document.querySelector("#display h2");
-const defaulth2 = document.querySelector("#display h2 span");
-const divider = document.querySelector("#divider");
-const history = document.querySelectorAll("#display h3");
-const display = document.querySelector("#display");
+//
+//
+// ================ Reset To Initial states =============== //
 
-function appendnum1(value) {
-	if (num1 == undefined) {
-		num1 = value;
-	} else {
-		num1 = num1 + value;
-	}
-	updateDisplay();
+function resetOnEqual() {
+	displayText = "";
+	runningTotal = "";
+	currNum = "";
+	currOperator = "";
+	enteringSecondNumber = false;
+
+	hasOperatorDeleted = false;
+	isDecimalActive = false;
 }
 
-function appendNum2(value) {
-	if (num2 == undefined) {
-		num2 = value;
-	} else {
-		num2 = num2 + value;
-	}
-	updateDisplay();
+function allClear() {
+	resetOnEqual();
+
+	inputDisplay.textContent = "Enter a Number";
+	resultDisplay.textContent = 0;
+	display.querySelectorAll("h3").forEach((h3) => h3.remove());
 }
 
-function updateDisplay() {
-	let displayText = "";
+//============================================================================================= //
+// =====================     KEYBOARD EVENT HANDLING      ===================================== //
 
-	if (num1 !== undefined) {
-		displayText += num1;
+const availableNumbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+document.addEventListener("keydown", handleKey);
+function handleKey(e) {
+	let btn;
+
+	if (availableNumbers.includes(e.key)) {
+		btn = document.querySelector(
+			`button[data-type="number"][data-value="${e.key}"]`,
+		);
+	} else if (availableOperator.includes(e.key)) {
+		btn = document.querySelector(
+			`button[data-type="operator"][data-value="${e.key}"]`,
+		);
+	} else if (e.key === "Enter") {
+		btn = document.querySelector(`button[data-type="equal"]`);
+	} else if (e.key === "Shift") {
+		btn = document.querySelector(`button[data-type="clear"]`);
+	} else if (e.key === "Delete") {
+		btn = document.querySelector(`button[data-type="ac"]`);
+	} else if (e.key === ".") {
+		btn = document.querySelector(`button[data-type="dot"]`);
 	}
 
-	if (operator) {
-		displayText += `${operator}`;
+	if (btn) {
+		btn.click();
+		btn.classList.add("key-active");
+		setTimeout(() => btn.classList.remove("key-active"), 100);
 	}
-
-	if (num2 !== undefined) {
-		displayText += num2;
-	}
-
-	h1.textContent = displayText.trim();
-};
-
-
-function cleanArr(arr, availableOperator) {
-	let result = [];
-
-	// 1️⃣ Remove elements with number datatype
-	arr = arr.filter(item => typeof item !== "number");
-
-	// 2️⃣ Remove continuous duplicate numbers (only possible at start)
-	for (let i = 0; i < arr.length; i++) {
-		if (i === 0 || arr[i] !== arr[i - 1]) {
-			result.push(arr[i]);
-		}
-	}
-
-	// 3️⃣ Keep only last operator if operators repeat continuously
-	let final = [];
-	for (let i = 0; i < result.length; i++) {
-		const current = result[i];
-		const prev = final[final.length - 1];
-
-		if (availableOperator.includes(current) &&
-			availableOperator.includes(prev)) {
-			final[final.length - 1] = current; // replace with latest operator
-		} else {
-			final.push(current);
-		}
-	}
-
-	// 4️⃣ Remove last element if it is operator
-	if (availableOperator.includes(final[final.length - 1])) {
-		final.pop();
-	}
-
-	return final;
 }
