@@ -93,7 +93,7 @@ function operate(runningTotal, operator, currNum) {
 		case "*":
 			return multiply(+runningTotal, +currNum);
 		case "/":
-			if (+currNum === "0") return "Error";
+			if (+currNum == "0") return "Error";
 			return divide(+runningTotal, +currNum);
 	}
 }
